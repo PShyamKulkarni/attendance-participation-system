@@ -1,0 +1,174 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  VERIFIED
+  SUSPENDED
+}
+
+enum SessionStatus {
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+enum VerificationMethod {
+  SESSION_CODE
+}
+
+enum DisputeStatus {
+  OPEN
+  APPROVED
+  REJECTED
+}
+
+enum AuditAction {
+  USER_VERIFIED
+  USER_SUSPENDED
+  ATTENDANCE_VERIFICATION_ATTEMPTED
+  ATTENDANCE_VERIFIED
+  DUPLICATE_ATTENDANCE_ATTEMPT
+  DISPUTE_CREATED
+  DISPUTE_APPROVED
+  DISPUTE_REJECTED
+  ATTENDANCE_CORRECTED
+}
+
+model User {
+  id              String     @id @default(cuid())
+  clerkUserId     String     @unique
+  name            String?
+  email           String     @unique
+  role            UserRole   @default(STUDENT)
+  status          UserStatus @default(PENDING)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  taughtCourses   Course[]
+  enrollments     Enrollment[]
+  sessions        AttendanceSession[]
+  attendance      AttendanceRecord[]
+  disputes        AttendanceDispute[]
+  auditLogs       AuditLog[]
+  reviewedDisputes AttendanceDispute[] @relation("DisputeReviewer")
+
+  @@index([role])
+  @@index([status])
+}
+
+model Course {
+  id           String   @id @default(cuid())
+  name         String
+  code         String   @unique
+  instructorId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  instructor   User      @relation(fields: [instructorId], references: [id])
+  enrollments  Enrollment[]
+  sessions     AttendanceSession[]
+
+  @@index([instructorId])
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  studentId String
+  courseId  String
+  createdAt DateTime @default(now())
+
+  student   User   @relation(fields: [studentId], references: [id])
+  course    Course @relation(fields: [courseId], references: [id])
+
+  @@unique([studentId, courseId])
+  @@index([courseId])
+}
+
+model AttendanceSession {
+  id              String        @id @default(cuid())
+  courseId        String
+  instructorId    String
+  startsAt        DateTime
+  endsAt          DateTime
+  verificationCodeHash String
+  codeExpiresAt   DateTime
+  status          SessionStatus @default(ACTIVE)
+  createdAt       DateTime      @default(now())
+
+  course          Course             @relation(fields: [courseId], references: [id])
+  instructor      User               @relation(fields: [instructorId], references: [id])
+  attendance      AttendanceRecord[]
+  disputes        AttendanceDispute[]
+
+  @@index([courseId])
+  @@index([instructorId])
+  @@index([status])
+  @@index([endsAt])
+}
+
+model AttendanceRecord {
+  id                 String             @id @default(cuid())
+  sessionId          String
+  studentId          String
+  verifiedAt         DateTime           @default(now())
+  verificationMethod VerificationMethod @default(SESSION_CODE)
+
+  session            AttendanceSession  @relation(fields: [sessionId], references: [id])
+  student            User               @relation(fields: [studentId], references: [id])
+  disputes            AttendanceDispute[]
+
+  @@unique([sessionId, studentId])
+  @@index([studentId])
+  @@index([verifiedAt])
+}
+
+model AttendanceDispute {
+  id                 String          @id @default(cuid())
+  sessionId          String
+  studentId          String
+  attendanceRecordId String?
+  reason             String
+  status             DisputeStatus   @default(OPEN)
+  reviewedById       String?
+  reviewedAt         DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  session            AttendanceSession @relation(fields: [sessionId], references: [id])
+  student            User              @relation(fields: [studentId], references: [id])
+  attendanceRecord   AttendanceRecord? @relation(fields: [attendanceRecordId], references: [id])
+  reviewedBy         User?             @relation("DisputeReviewer", fields: [reviewedById], references: [id])
+
+  @@index([sessionId])
+  @@index([studentId])
+  @@index([status])
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  actorId    String?
+  action     AuditAction
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+
+  actor      User?       @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
