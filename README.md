@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Attendance & Participation System
 
-## Getting Started
+verified attendance and participation tracking system designed to reduce manual attendance errors, disputes, and administrative work.
 
-First, run the development server:
+## Problem
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Traditional attendance systems often depend on manual recording by instructors. This can result in:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Incorrect attendance records
+- Student disputes
+- Accidental changes
+- Additional administrative work
+- Lack of a reliable audit trail
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This project aims to create a stronger source of truth for attendance by recording participation as a verifiable and auditable event.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Proposed Solution
 
-## Learn More
+The system allows an instructor to create a time-limited attendance session.
 
-To learn more about Next.js, take a look at the following resources:
+Students can verify their participation during the active session using a session-specific verification mechanism.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The system validates the request and records the attendance event along with its timestamp.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If an attendance record is disputed, the instructor can review the dispute. Corrections are recorded as separate auditable actions rather than silently overwriting the original record.
 
-## Deploy on Vercel
+## Core Workflow
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Instructor creates an attendance session.
+2. The system creates a temporary verification mechanism.
+3. Students verify their participation.
+4. The system validates the verification request.
+5. A timestamped attendance record is created.
+6. Attendance history can be reviewed.
+7. Students can raise disputes when necessary.
+8. Instructor-approved corrections are recorded in the audit history.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Key Design Principle
+
+Attendance is treated as a verifiable event rather than simply a manually editable present/absent value.
+
+## Scope
+
+The initial system will focus on:
+
+- Student and instructor roles
+- Courses and enrollment
+- Attendance sessions
+- Student attendance verification
+- Attendance records
+- Attendance history
+- Attendance disputes
+- Instructor review and corrections
+- Audit logging
+
+## Out of Scope
+
+The initial version will not include:
+
+- Facial recognition
+- GPS tracking
+- Biometric identification
+- Blockchain
+- Predictive attendance
+- Native mobile applications
+- Complex analytics
+
+These features are intentionally excluded so that the core attendance verification and audit workflow remains the primary focus.
+
+## Technology Stack
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- PostgreSQL
+- Prisma
+- Git and GitHub
+
+## Project Status
+
+Currently in development.
+
+## Assumptions
+
+To be documented as the system is designed and implemented.
+
+## Setup
+
+Setup instructions will be documented after the development environment and database configuration are finalized.
+
+## Testing
+
+Test instructions and test cases will be documented as the system is implemented.
+
+## Deployment
+
+Production deployment instructions and the live application URL will be added before submission.
+
+## Submission
+
+Final submission will use the Git tag:
+
+`submission-v1`
