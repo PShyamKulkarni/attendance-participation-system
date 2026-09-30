@@ -1,7 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
+import { ensureApplicationUser } from "@/lib/user";
 
 export default async function DashboardPage() {
-  await auth.protect();
+  const user = await ensureApplicationUser();
 
   return (
     <main className="min-h-screen p-8">
@@ -9,9 +9,23 @@ export default async function DashboardPage() {
         Attendance Dashboard
       </h1>
 
-      <p className="mt-4">
-        You are authenticated and can access this protected page.
-      </p>
+      <div className="mt-6 space-y-2">
+        <p>
+          <strong>Name:</strong> {user.name ?? "Not provided"}
+        </p>
+
+        <p>
+          <strong>Email:</strong> {user.email}
+        </p>
+
+        <p>
+          <strong>Role:</strong> {user.role}
+        </p>
+
+        <p>
+          <strong>Status:</strong> {user.status}
+        </p>
+      </div>
     </main>
   );
 }
