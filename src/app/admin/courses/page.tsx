@@ -2,11 +2,12 @@ import { UserRole, UserStatus } from "@prisma/client";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import CourseForm from "./CourseForm";
+import EnrollmentForm from "./EnrollmentForm";
 
 export default async function AdminCoursesPage() {
   const admin = await requireRole([UserRole.ADMIN]);
 
-  const [courses, instructors] = await Promise.all([
+  const [courses, instructors, students] = await Promise.all([
     prisma.course.findMany({
       select: {
         id: true,
@@ -40,6 +41,19 @@ export default async function AdminCoursesPage() {
       },
       orderBy: { createdAt: "asc" },
     }),
+
+    prisma.user.findMany({
+      where: {
+        role: UserRole.STUDENT,
+        status: UserStatus.VERIFIED,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+      orderBy: { createdAt: "asc" },
+    }),
   ]);
 
   return (
@@ -49,6 +63,14 @@ export default async function AdminCoursesPage() {
       <p className="mt-4">Signed in as: {admin.email}</p>
 
       <CourseForm instructors={instructors} />
+      <EnrollmentForm
+       courses={courses.map((course) => ({
+        id: course.id,
+        name: course.name,
+        code: course.code,
+       }))}
+       students={students}
+    />
 
       <div className="mt-8 overflow-x-auto">
         <table className="w-full border-collapse border border-gray-300">
