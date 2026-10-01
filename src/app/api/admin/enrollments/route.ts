@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
-  await requireRole([UserRole.ADMIN]);
+  const admin = await requireRole([UserRole.ADMIN]);
 
   const body = await request.json();
 
@@ -27,6 +27,14 @@ export async function POST(request: Request) {
   const [course, student] = await Promise.all([
     prisma.course.findUnique({
       where: { id: courseId },
+      include: {
+        instructor: {
+          select: {
+            id: true,
+            adminId: true,
+          },
+        },
+      },
     }),
 
     prisma.user.findUnique({
@@ -57,6 +65,24 @@ export async function POST(request: Request) {
         error: "Student must be verified before enrollment",
       },
       { status: 400 },
+    );
+  }
+
+  if (course.instructor.adminId !== admin.id) {
+    return Response.json(
+      {
+        error: "Course does not belong to your organization",
+      },
+      { status: 403 },
+    );
+  }
+
+  if (student.adminId !== admin.id) {
+    return Response.json(
+      {
+        error: "Student does not belong to your organization",
+      },
+      { status: 403 },
     );
   }
 
