@@ -1,9 +1,10 @@
 import { UserRole, UserStatus } from "@prisma/client";
+
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
-  await requireRole([UserRole.ADMIN]);
+  const admin = await requireRole([UserRole.ADMIN]);
 
   const body = await request.json();
 
@@ -21,8 +22,7 @@ export async function POST(request: Request) {
   ) {
     return Response.json(
       {
-        error:
-          "name, code, and instructorId are required",
+        error: "name, code, and instructorId are required",
       },
       { status: 400 },
     );
@@ -47,10 +47,18 @@ export async function POST(request: Request) {
   ) {
     return Response.json(
       {
-        error:
-          "Course instructor must be a verified instructor",
+        error: "Course instructor must be a verified instructor",
       },
       { status: 400 },
+    );
+  }
+
+  if (instructor.adminId !== admin.id) {
+    return Response.json(
+      {
+        error: "Instructor does not belong to your organization",
+      },
+      { status: 403 },
     );
   }
 

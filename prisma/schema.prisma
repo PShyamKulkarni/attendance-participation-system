@@ -47,25 +47,35 @@ enum AuditAction {
 }
 
 model User {
-  id              String     @id @default(cuid())
-  clerkUserId     String     @unique
-  name            String?
-  email           String     @unique
-  role            UserRole   @default(STUDENT)
-  status          UserStatus @default(PENDING)
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  id               String     @id @default(cuid())
+  clerkUserId      String     @unique
+  name             String?
+  email            String     @unique
+  role             UserRole   @default(STUDENT)
+  status           UserStatus @default(PENDING)
 
-  taughtCourses   Course[]
-  enrollments     Enrollment[]
-  sessions        AttendanceSession[]
-  attendance      AttendanceRecord[]
-  disputes        AttendanceDispute[]
-  auditLogs       AuditLog[]
+  // Admin organization/access control
+  adminId          String?
+  adminCodeHash    String?    @unique
+
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  // Admin -> students/instructors
+  admin            User?      @relation("AdminMembers", fields: [adminId], references: [id])
+  members          User[]     @relation("AdminMembers")
+
+  taughtCourses    Course[]
+  enrollments      Enrollment[]
+  sessions         AttendanceSession[]
+  attendance       AttendanceRecord[]
+  disputes         AttendanceDispute[]
+  auditLogs        AuditLog[]
   reviewedDisputes AttendanceDispute[] @relation("DisputeReviewer")
 
   @@index([role])
   @@index([status])
+  @@index([adminId])
 }
 
 model Course {
