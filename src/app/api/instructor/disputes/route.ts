@@ -158,6 +158,25 @@ export async function PATCH(request: Request) {
         },
       });
 
+      if (
+  decision === DisputeStatus.APPROVED &&
+  dispute.attendanceRecordId
+) {
+  await transaction.auditLog.create({
+    data: {
+      actorId: instructor.id,
+      action: "ATTENDANCE_CORRECTED",
+      entityType: "AttendanceRecord",
+      entityId: dispute.attendanceRecordId,
+      metadata: {
+        disputeId: dispute.id,
+        courseId: dispute.session.courseId,
+        correction: "DISPUTE_APPROVED",
+      },
+    },
+  });
+}
+
       return updated;
     });
 
