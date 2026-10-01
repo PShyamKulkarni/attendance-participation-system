@@ -128,7 +128,7 @@ export default function SessionForm({
       </form>
 
       {result && (
-        <div className="mt-6 rounded border border-green-300 bg-green-50 p-6">
+        <div className="mt-6 rounded border border-gray-300 bg-black p-6">
           <h2 className="text-xl font-semibold">
             Attendance Session Active
           </h2>
