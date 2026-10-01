@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
 
 import { UserRole } from "@prisma/client";
+
 import { requireRole } from "@/lib/auth";
+
 import { prisma } from "@/lib/prisma";
 
 function generateVerificationCode() {
@@ -31,6 +33,14 @@ export async function POST(request: Request) {
 
   const course = await prisma.course.findUnique({
     where: { id: courseId },
+    include: {
+      instructor: {
+        select: {
+          id: true,
+          adminId: true,
+        },
+      },
+    },
   });
 
   if (!course) {
@@ -50,6 +60,15 @@ export async function POST(request: Request) {
     );
   }
 
+  if (course.instructor.adminId !== instructor.adminId) {
+    return Response.json(
+      {
+        error: "Course does not belong to your organization",
+      },
+      { status: 403 },
+    );
+  }
+
   const now = new Date();
 
   const endsAt = new Date(
@@ -61,6 +80,7 @@ export async function POST(request: Request) {
   );
 
   const verificationCode = generateVerificationCode();
+
   const verificationCodeHash =
     hashVerificationCode(verificationCode);
 
