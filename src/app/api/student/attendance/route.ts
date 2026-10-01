@@ -53,7 +53,16 @@ export async function POST(request: Request) {
         id: sessionId,
       },
       include: {
-        course: true,
+        course: {
+          include: {
+            instructor: {
+              select: {
+                id: true,
+                adminId: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -87,6 +96,18 @@ export async function POST(request: Request) {
         error: "Verification code has expired",
       },
       { status: 400 },
+    );
+  }
+
+  if (
+    session.course.instructor.adminId !== student.adminId
+  ) {
+    return Response.json(
+      {
+        error:
+          "This attendance session does not belong to your organization",
+      },
+      { status: 403 },
     );
   }
 
